@@ -1,0 +1,29 @@
+# Keil MDK 编译产物
+MDK-ARM/2025template/
+*.build_log.htm
+*.dep
+*.axf
+*.hex
+*.lnp
+*.map
+*.crf
+*.d
+*.o
+*.elf
+*.lst
+JLinkLog.txt
+JLinkSettings.ini
+
+# Keil 用户界面状态（每个人的窗口布局，不提交）
+*.uvguix.*
+# *.uvoptx 保留（含调试器配置，多人协作有时需要；如不需要可取消下面注释）
+# *.uvoptx
+
+# STM32CubeMX 备份
+*.ioc.bak
+
+# IDE / 系统文件
+*.bak
+*.orig
+Thumbs.db
+Desktop.ini
