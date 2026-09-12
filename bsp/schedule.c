@@ -1,53 +1,51 @@
 #include "schedule.h"
+#include "laser_bsp.h"
 
-typedef struct {
-	void (*task_func)(void);
-	uint32_t rate_ms;
-	uint32_t last_run;
-}schedule_task_t;
+typedef struct
+{
+    void (*task_func)(void);
+    uint32_t rate_ms;
+    uint32_t last_run;
+} schedule_task_t;
 
 uint8_t task_num;
 
 static schedule_task_t schedule_task[] = {
-//	{oled_proc,100,0},
-	{uart_proc,1,0},
-	{pi_proc,20,0}
+    {uart_proc, 10, 0},     // Faster UART processing for quick data reception
+    {pi_proc, 10, 0},       // Faster PID control for quick response
+    {key_proc, 20, 0},      // Reduced frequency for key processing
+    {Laser_Process, 10, 0}, // Laser control processing
 
-//	{motor_proc,20,0},
-//	{encoder_proc,20,0},
-//	{key_proc,10,0},
-//	{gray_proc,20,0}
-	
 };
 
 /**
- * @brief µ÷¶ÈÆ÷³õÊ¼»¯º¯Êý
- * ¼ÆËãÈÎÎñÊý×éµÄÔªËØ¸öÊý£¬²¢½«½á¹û´æ´¢ÔÚ task_num ÖÐ
+ * @brief ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ´¢ï¿½ï¿½ task_num ï¿½ï¿½
  */
 void schedule_init(void)
 {
-	task_num = sizeof(schedule_task) / sizeof(schedule_task_t);
+    task_num = sizeof(schedule_task) / sizeof(schedule_task_t);
 }
 
 /**
- * @brief µ÷¶ÈÆ÷ÔËÐÐº¯Êý
- * ±éÀúÈÎÎñÊý×é£¬¼ì²éÊÇ·ñÓÐÈÎÎñÐèÒªÖ´ÐÐ¡£Èç¹ûµ±Ç°Ê±¼äÒÑ¾­³¬¹ýÈÎÎñµÄÖ´ÐÐÖÜÆÚ£¬ÔòÖ´ÐÐ¸ÃÈÎÎñ²¢¸üÐÂÉÏ´ÎÔËÐÐÊ±¼ä
+ * @brief ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðºï¿½ï¿½ï¿½
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é£¬ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÖ´ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°Ê±ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½Ö´ï¿½Ð¸ï¿½ï¿½ï¿½ï¿½ñ²¢¸ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
  */
 void schedule_run(void)
 {
-    // ±éÀúÈÎÎñÊý×éÖÐµÄËùÓÐÈÎÎñ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     for (uint8_t i = 0; i < task_num; i++)
     {
-        // »ñÈ¡µ±Ç°µÄÏµÍ³Ê±¼ä£¨ºÁÃë£©
+        // ï¿½ï¿½È¡ï¿½ï¿½Ç°ï¿½ï¿½ÏµÍ³Ê±ï¿½ä£¨ï¿½ï¿½ï¿½ë£©
         uint32_t now_time = HAL_GetTick();
 
-        // ¼ì²éµ±Ç°Ê±¼äÊÇ·ñ´ïµ½ÈÎÎñµÄÖ´ÐÐÊ±¼ä
+        // ï¿½ï¿½éµ±Ç°Ê±ï¿½ï¿½ï¿½Ç·ï¿½ïµ½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½Ê±ï¿½ï¿½
         if (now_time >= schedule_task[i].rate_ms + schedule_task[i].last_run)
         {
-            // ¸üÐÂÈÎÎñµÄÉÏ´ÎÔËÐÐÊ±¼äÎªµ±Ç°Ê±¼ä
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Îªï¿½ï¿½Ç°Ê±ï¿½ï¿½
             schedule_task[i].last_run = now_time;
 
-            // Ö´ÐÐÈÎÎñº¯Êý
+            // Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             schedule_task[i].task_func();
         }
     }

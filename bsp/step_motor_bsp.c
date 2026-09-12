@@ -1,31 +1,32 @@
 #include "step_motor_bsp.h"
 
 /**
- * @brief µç»ú³õÊ¼»¯º¯Êý
+ * @brief ???????
+ * @note ????????????????????????
  */
 void Step_Motor_Init(void)
 {
-    /* Ê¹ÄÜXÖáµç»ú */
+    /* ???X???? */
     Emm_V5_En_Control(&MOTOR_X_UART, MOTOR_X_ADDR, true, MOTOR_SYNC_FLAG);
 
-    /* Ê¹ÄÜYÖáµç»ú */
+    /* ???Y???? */
     Emm_V5_En_Control(&MOTOR_Y_UART, MOTOR_Y_ADDR, true, MOTOR_SYNC_FLAG);
 
-    /* ³õÊ¼Í£Ö¹ */
+    /* ????? */
     Step_Motor_Stop();
 }
 
 /**
- * @brief ÉèÖÃXYÖáµç»úËÙ¶È
- * @param x_percent XÖáËÙ¶È°Ù·Ö±È£¬·¶Î§-100µ½100
- * @param y_percent YÖáËÙ¶È°Ù·Ö±È£¬·¶Î§-100µ½100
+ * @brief ????XY???????
+ * @param x_percent X?????????????-100??100
+ * @param y_percent Y?????????????-100??100
  */
 void Step_Motor_Set_Speed(int8_t x_percent, int8_t y_percent)
 {
     uint8_t x_dir, y_dir;
     uint16_t x_speed, y_speed;
 
-    /* ÏÞÖÆ°Ù·Ö±È·¶Î§ */
+    /* ?????????? */
     if (x_percent > 100)
         x_percent = 100;
     if (x_percent < -100)
@@ -35,59 +36,59 @@ void Step_Motor_Set_Speed(int8_t x_percent, int8_t y_percent)
     if (y_percent < -100)
         y_percent = -100;
 
-    /* ÉèÖÃXÖá·½Ïò */
+    /* ????X???? */
     if (x_percent >= 0)
     {
-        x_dir = 0; /* CW·½Ïò */
+        x_dir = 0; /* CW???? */
     }
     else
     {
-        x_dir = 1;              /* CCW·½Ïò */
-        x_percent = -x_percent; /* È¡¾ø¶ÔÖµ */
+        x_dir = 1;              /* CCW???? */
+        x_percent = -x_percent; /* ?????? */
     }
 
-    /* ÉèÖÃYÖá·½Ïò */
+    /* ????Y???? */
     if (y_percent >= 0)
     {
-        y_dir = 0; /* CW·½Ïò */
+        y_dir = 0; /* CW???? */
     }
     else
     {
-        y_dir = 1;              /* CCW·½Ïò */
-        y_percent = -y_percent; /* È¡¾ø¶ÔÖµ */
+        y_dir = 1;              /* CCW???? */
+        y_percent = -y_percent; /* ?????? */
     }
 
-    /* ¼ÆËãÊµ¼ÊËÙ¶ÈÖµ(°Ù·Ö±È×ª»»ÎªRPM) */
+    /* ???????????(????????RPM) */
     x_speed = (uint16_t)((x_percent * MOTOR_MAX_SPEED) / 100);
     y_speed = (uint16_t)((y_percent * MOTOR_MAX_SPEED) / 100);
 
-	/* Ìí¼Óµ÷ÊÔ´òÓ¡È·ÈÏ¼ÆËã */
-     my_printf(&huart1, "X: dir=%d, speed=%u; Y: dir=%d, speed=%u\r\n", x_dir, x_speed, y_dir, y_speed);
-	
-    /* ¿ØÖÆXÖáµç»ú */
+    /* ??????????????? */
+    my_printf(&huart1, "X: dir=%d, speed=%u; Y: dir=%d, speed=%u\r\n", x_dir, x_speed, y_dir, y_speed);
+
+    /* ????X???? */
     Emm_V5_Vel_Control(&MOTOR_X_UART, MOTOR_X_ADDR, x_dir, x_speed, MOTOR_ACCEL, MOTOR_SYNC_FLAG);
 
-    /* ¿ØÖÆYÖáµç»ú */
+    /* ????Y???? */
     Emm_V5_Vel_Control(&MOTOR_Y_UART, MOTOR_Y_ADDR, y_dir, y_speed, MOTOR_ACCEL, MOTOR_SYNC_FLAG);
 }
 
 /**
- * @brief ÉèÖÃXYÖáµç»úËÙ¶È
- * @param x_rpm XÖáÄ¿±êËÙ¶È£¬µ¥Î»RPM (revolutions per minute)¡£
- *              Ö§³Ö¸ºÖµ±íÊ¾·´Ïò¡£
- *              ËÙ¶È¾«¶ÈÎª0.1RPM¡£Ð¡ÓÚ0.05 RPMµÄ¾ø¶ÔÖµ½«±»Á¿»¯Îª0¡£
- * @param y_rpm YÖáÄ¿±êËÙ¶È£¬µ¥Î»RPM (revolutions per minute)¡£
- *              Ö§³Ö¸ºÖµ±íÊ¾·´Ïò¡£
- *              ËÙ¶È¾«¶ÈÎª0.1RPM¡£Ð¡ÓÚ0.05 RPMµÄ¾ø¶ÔÖµ½«±»Á¿»¯Îª0¡£
+ * @brief ????XY???????
+ * @param x_rpm X?????????????RPM (revolutions per minute)??
+ *              ????????????
+ *              ???????0.1RPM??????0.05 RPM???????????????0??
+ * @param y_rpm Y?????????????RPM (revolutions per minute)??
+ *              ????????????
+ *              ???????0.1RPM??????0.05 RPM???????????????0??
  */
 void Step_Motor_Set_Speed_my(float x_rpm, float y_rpm)
 {
     uint8_t x_dir, y_dir;
-    uint16_t x_speed_scaled, y_speed_scaled; // ËÙ¶ÈÖµ£¬µ¥Î»Îª 0.1 RPM
+    uint16_t x_speed_scaled, y_speed_scaled; // ??????????? 0.1 RPM
     float abs_x_rpm, abs_y_rpm;
 
-    /* 1. ÏÞÖÆÊäÈëRPM·¶Î§£¬È·±£²»³¬¹ýµç»ú×î´óÎïÀíËÙ¶È */
-    // ½«ÊäÈëµÄRPMÖµÇ¯Î»ÔÚ [-MOTOR_MAX_SPEED, MOTOR_MAX_SPEED] Ö®¼ä
+    /* 1. ????????RPM???????????????????????????? */
+    // ???????RPM?????? [-MOTOR_MAX_SPEED, MOTOR_MAX_SPEED] ???
     if (x_rpm > MOTOR_MAX_SPEED)
     {
         x_rpm = MOTOR_MAX_SPEED;
@@ -106,120 +107,326 @@ void Step_Motor_Set_Speed_my(float x_rpm, float y_rpm)
         y_rpm = -MOTOR_MAX_SPEED;
     }
 
-    /* 2. ´¦ÀíXÖá·½ÏòºÍ»ñÈ¡¾ø¶ÔËÙ¶È */
+// ????????????????????????????
+#define MIN_MOTOR_SPEED 0.05f // ?????0.05 RPM (????10??????????)
+    if (fabs(x_rpm) > 0 && fabs(x_rpm) < MIN_MOTOR_SPEED)
+    {
+        x_rpm = (x_rpm > 0) ? MIN_MOTOR_SPEED : -MIN_MOTOR_SPEED;
+    }
+    if (fabs(y_rpm) > 0 && fabs(y_rpm) < MIN_MOTOR_SPEED)
+    {
+        y_rpm = (y_rpm > 0) ? MIN_MOTOR_SPEED : -MIN_MOTOR_SPEED;
+    }
+
+    /* 2. ????X?????????????? */
     if (x_rpm >= 0.0f)
     {
-        x_dir = 0; /* CW·½Ïò (Õý×ª) */
+        x_dir = 0; /* CW???? (???) */
         abs_x_rpm = x_rpm;
     }
     else
     {
-        x_dir = 1; /* CCW·½Ïò (·´×ª) */
-        abs_x_rpm = -x_rpm; /* È¡¾ø¶ÔÖµ */
+        x_dir = 1;          /* CCW???? (???) */
+        abs_x_rpm = -x_rpm; /* ?????? */
     }
 
-    /* 3. ´¦ÀíYÖá·½ÏòºÍ»ñÈ¡¾ø¶ÔËÙ¶È */
+    /* 3. ????Y?????????????? */
     if (y_rpm >= 0.0f)
     {
-        y_dir = 0; /* CW·½Ïò (Õý×ª) */
+        y_dir = 0; /* CW???? (???) */
         abs_y_rpm = y_rpm;
     }
     else
     {
-        y_dir = 1; /* CCW·½Ïò (·´×ª) */
-        abs_y_rpm = -y_rpm; /* È¡¾ø¶ÔÖµ */
+        y_dir = 1;          /* CCW???? (???) */
+        abs_y_rpm = -y_rpm; /* ?????? */
     }
 
-    /* 4. ¼ÆËãÊµ¼Ê·¢ËÍ¸øµç»ú¿ØÖÆÆ÷µÄËÙ¶ÈÖµ (µ¥Î»Îª 0.1 RPM) */
-    // ½«RPMÖµ³ËÒÔ10£¬µÃµ½ÒÔ0.1RPMÎªµ¥Î»µÄÕûÊýÖµ¡£
-    // ¼ÓÉÏ0.5fÊÇÎªÁË½øÐÐËÄÉáÎåÈë¡£
-    // ÕâÑù£¬ÀýÈç 0.04 RPM (0.4 scaled) + 0.5f = 0.9f -> 0 (uint16_t)
+    /* 4. ?????????????????????????? (????? 0.1 RPM) */
+    // ??RPM?????10???????0.1RPM??????????????
+    // ????0.5f????????????????
+    // ?????????? 0.04 RPM (0.4 scaled) + 0.5f = 0.9f -> 0 (uint16_t)
     // 0.05 RPM (0.5 scaled) + 0.5f = 1.0f -> 1 (uint16_t)
     x_speed_scaled = (uint16_t)(abs_x_rpm * 10 + 0.5f);
     y_speed_scaled = (uint16_t)(abs_y_rpm * 10 + 0.5f);
-    
-    // ÔÙ´Î¼ì²é¼ÆËã³öµÄ scaled speed ÊÇ·ñ³¬³ö uint16_t µÄ×î´óÖµ£¬
-    // ÀíÂÛÉÏÔÚÊäÈëÇ¯Î»ºó (MOTOR_MAX_SPEED * RPM_TO_SCALED_FACTOR) ²»»á³¬¹ý uint16_t£¬
-    // µ«×÷ÎªÂ³°ôÐÔ¼ì²é£¬¿ÉÒÔÌí¼Ó´ËÐÐ¡£
-//    uint16_t max_scaled_speed = (uint16_t)(MOTOR_MAX_SPEED * 10 + 0.5f);
-//    if (x_speed_scaled > max_scaled_speed) {
-//        x_speed_scaled = max_scaled_speed;
-//    }
-//    if (y_speed_scaled > max_scaled_speed) {
-//        y_speed_scaled = max_scaled_speed;
-//    }
 
+    // ???????????? scaled speed ???? uint16_t ????????
+    // ????????????????? (MOTOR_MAX_SPEED * RPM_TO_SCALED_FACTOR) ?????? uint16_t??
+    // ?????????????????????????
+    //    uint16_t max_scaled_speed = (uint16_t)(MOTOR_MAX_SPEED * 10 + 0.5f);
+    //    if (x_speed_scaled > max_scaled_speed) {
+    //        x_speed_scaled = max_scaled_speed;
+    //    }
+    //    if (y_speed_scaled > max_scaled_speed) {
+    //        y_speed_scaled = max_scaled_speed;
+    //    }
 
-//    /* Ìí¼Óµ÷ÊÔ´òÓ¡È·ÈÏ¼ÆËã */
-//    my_printf(&huart1, "X: input_rpm=%.1f, dir=%d, abs_rpm=%.1f, scaled_speed=%u; Y: input_rpm=%.1f, dir=%d, abs_rpm=%.1f, scaled_speed=%u\r\n",
-//              x_rpm, x_dir, abs_x_rpm, x_speed_scaled,
-//              y_rpm, y_dir, abs_y_rpm, y_speed_scaled);
-    
-    /* ¿ØÖÆXÖáµç»ú */
+    /* ??????????????? */
+    static uint32_t last_print_time = 0;
+    uint32_t current_time = HAL_GetTick();
+    if (current_time - last_print_time > 500) // ?500ms???????????????
+    {
+        my_printf(&huart1, "Motor: X_rpm=%.1f(dir=%d,speed=%u) Y_rpm=%.1f(dir=%d,speed=%u)\r\n",
+                  x_rpm, x_dir, x_speed_scaled, y_rpm, y_dir, y_speed_scaled);
+        last_print_time = current_time;
+    }
+
+    /* ????X???? */
     Emm_V5_Vel_Control(&MOTOR_X_UART, MOTOR_X_ADDR, x_dir, x_speed_scaled, MOTOR_ACCEL, MOTOR_SYNC_FLAG);
 
-    /* ¿ØÖÆYÖáµç»ú */
+    /* ????Y???? */
     Emm_V5_Vel_Control(&MOTOR_Y_UART, MOTOR_Y_ADDR, y_dir, y_speed_scaled, MOTOR_ACCEL, MOTOR_SYNC_FLAG);
 }
 
 /**
- * @brief ÉèÖÃXYÖáµç»úÒÆ¶¯Ò»¶Î¾àÀë£¨Ê¹ÓÃÎ»ÖÃÄ£Ê½£©
- * @param x_distance XÖáÒÆ¶¯¾àÀë£¨Âö³åÊý£©£¬ÕýÖµÎªCW·½Ïò£¬¸ºÖµÎªCCW·½Ïò
- * @param y_distance YÖáÒÆ¶¯¾àÀë£¨Âö³åÊý£©£¬ÕýÖµÎªCW·½Ïò£¬¸ºÖµÎªCCW·½Ïò
+ * @brief ????XY?????????????????????????
+ * @param x_distance X???????????????????????CW???????CCW????
+ * @param y_distance Y???????????????????????CW???????CCW????
  */
 void Step_Motor_Set_Pwm(int32_t x_distance, int32_t y_distance)
 {
     uint8_t x_dir, y_dir;
     uint32_t x_clk, y_clk;
-    uint16_t speed = MOTOR_MAX_SPEED;  /* Ê¹ÓÃ×î´óËÙ¶È£¬»ò¸ù¾ÝÐèÒªµ÷Õû */
-    uint8_t acc = MOTOR_ACCEL;        /* Ê¹ÓÃÔ¤¶¨Òå¼ÓËÙ¶È */
+    uint16_t speed = MOTOR_MAX_SPEED; /* ?????????????????????? */
+    uint8_t acc = MOTOR_ACCEL;        /* ???????????? */
 
-    /* ÉèÖÃXÖá·½ÏòºÍÂö³åÊý */
+    /* ????X??????????? */
     if (x_distance >= 0)
     {
-        x_dir = 0; /* CW·½Ïò */
+        x_dir = 0; /* CW???? */
         x_clk = (uint32_t)x_distance;
     }
     else
     {
-        x_dir = 1; /* CCW·½Ïò */
-        x_clk = (uint32_t)(-x_distance); /* È¡¾ø¶ÔÖµ */
+        x_dir = 1;                       /* CCW???? */
+        x_clk = (uint32_t)(-x_distance); /* ?????? */
     }
 
-    /* ÉèÖÃYÖá·½ÏòºÍÂö³åÊý */
+    /* ????Y??????????? */
     if (y_distance >= 0)
     {
-        y_dir = 0; /* CW·½Ïò */
+        y_dir = 0; /* CW???? */
         y_clk = (uint32_t)y_distance;
     }
     else
     {
-        y_dir = 1; /* CCW·½Ïò */
-        y_clk = (uint32_t)(-y_distance); /* È¡¾ø¶ÔÖµ */
+        y_dir = 1;                       /* CCW???? */
+        y_clk = (uint32_t)(-y_distance); /* ?????? */
     }
 
-    /* ¿ØÖÆXÖáµç»ú£¨Ïà¶ÔÔË¶¯£¬²»ÆôÓÃ¾ø¶ÔÄ£Ê½£© */
+    /* ????X??????????????????????????? */
     Emm_V5_Pos_Control(&MOTOR_X_UART, MOTOR_X_ADDR, x_dir, speed, acc, x_clk, false, MOTOR_SYNC_FLAG);
 
-    /* ¿ØÖÆYÖáµç»ú£¨Ïà¶ÔÔË¶¯£¬²»ÆôÓÃ¾ø¶ÔÄ£Ê½£© */
+    /* ????Y??????????????????????????? */
     Emm_V5_Pos_Control(&MOTOR_Y_UART, MOTOR_Y_ADDR, y_dir, speed, acc, y_clk, false, MOTOR_SYNC_FLAG);
 }
 
-
 /**
- * @brief Í£Ö¹ËùÓÐµç»ú
+ * @brief ?????????
  */
 void Step_Motor_Stop(void)
 {
-    /* Í£Ö¹XÖáµç»ú */
+    /* ??X???? */
     Emm_V5_Stop_Now(&MOTOR_X_UART, MOTOR_X_ADDR, MOTOR_SYNC_FLAG);
 
-    /* Í£Ö¹YÖáµç»ú */
+    /* ??Y???? */
     Emm_V5_Stop_Now(&MOTOR_Y_UART, MOTOR_Y_ADDR, MOTOR_SYNC_FLAG);
 }
 
 void step_motor_proc(void)
 {
-	
 }
 
+/**
+ * @brief ??????????
+ * @param angle ???????
+ * @param speed ?????RPM?
+ * @return ????????
+ */
+uint32_t calculate_rotation_time(int16_t angle, uint16_t speed)
+{
+    // ??????
+    uint16_t abs_angle = (angle >= 0) ? angle : -angle;
+
+    // ????????? = (??/360) * (60?/??) * 1000ms/?
+    // ?????????????
+    float time_seconds = (float)abs_angle / 360.0f * 60.0f / (float)speed;
+    uint32_t time_ms = (uint32_t)(time_seconds * 1000.0f);
+
+    // ?????????500ms???5000ms
+    if (time_ms < 500)
+        time_ms = 500;
+    if (time_ms > 5000)
+        time_ms = 5000;
+
+    // ????????????
+    if (abs_angle >= 135)
+        time_ms += 1000; // ?????1?
+    else if (abs_angle >= 90)
+        time_ms += 500; // ?????0.5?
+    else if (abs_angle >= 45)
+        time_ms += 300; // ?????0.3?
+
+    return time_ms;
+}
+
+/**
+ * @brief X????????????
+ * @param angle ??????????(CW)??????(CCW)
+ * @note Emm_V5??????????
+ *       - ?????clk????0.01??45? = 4500
+ *       - ?????angle * 100 ????3???
+ *       - ???????15????45? = 45 * 1500 = 67500
+ *       - ?????????????????????
+ *       - ?????0-5000 RPM
+ */
+void Step_Motor_Rotate_X_Angle(int16_t angle)
+{
+    uint8_t dir;
+    uint32_t pulses;
+    uint16_t speed = MOTOR_MAX_SPEED; // ??????
+    uint8_t acc = MOTOR_ACCEL;        // ????????
+
+    my_printf(&huart1, "\r\n=== MOTOR CONTROL START ===\r\n");
+    my_printf(&huart1, "Input angle: %d degrees\r\n", angle);
+    my_printf(&huart1, "Motor config: Speed=%d RPM, Accel=%d\r\n", speed, acc);
+
+    // ??????
+    if (angle > 180)
+    {
+        my_printf(&huart1, "WARNING: Angle %d > 180, limiting to 180\r\n", angle);
+        angle = 180;
+    }
+    if (angle < -180)
+    {
+        my_printf(&huart1, "WARNING: Angle %d < -180, limiting to -180\r\n", angle);
+        angle = -180;
+    }
+
+    // ???????0
+    if (angle == 0)
+    {
+        my_printf(&huart1, "WARNING: Angle is 0, no rotation needed\r\n");
+        return;
+    }
+
+    // ????????????
+    // ?????????????????????????
+    // ?????angle * 100 ?????3??????15???
+    if (angle >= 0)
+    {
+        dir = 1;                          // CW?? (??)
+        pulses = (uint32_t)(angle * 150); // ?????45? = 45 * 1500 = 67500
+        my_printf(&huart1, "Direction: CW (Right), Angle: +%d\r\n", angle);
+    }
+    else
+    {
+        dir = 0;                             // CCW?? (??)
+        pulses = (uint32_t)((-angle) * 150); // ?????-45? = 45 * 1500 = 67500
+        my_printf(&huart1, "Direction: CCW (Left), Angle: %d\r\n", angle);
+    }
+
+    if (pulses == 0)
+    {
+        my_printf(&huart1, "ERROR: Calculated angle value is 0!\r\n");
+        return;
+    }
+
+    Emm_V5_Pos_Control(&MOTOR_X_UART, MOTOR_X_ADDR, dir, speed, acc, pulses, false, MOTOR_SYNC_FLAG);
+
+    if (MOTOR_X_UART.gState == HAL_UART_STATE_READY)
+    {
+        my_printf(&huart1, "UART state: READY\r\n");
+    }
+    else
+    {
+        my_printf(&huart1, "WARNING: UART state: %d (not ready)\r\n", MOTOR_X_UART.gState);
+    }
+
+    uint32_t rotation_time_ms = calculate_rotation_time(angle, speed);
+    my_printf(&huart1, "Calculated rotation time: %lu ms\r\n", rotation_time_ms);
+    my_printf(&huart1, "Waiting for rotation to complete...\r\n");
+
+    HAL_Delay(rotation_time_ms);
+}
+
+/**
+ * @brief Y??????????
+ * @param angle ???????????????
+ */
+void Step_Motor_Rotate_Y_Angle(int16_t angle)
+{
+    uint8_t dir;
+    uint32_t pulses;
+    uint16_t speed = MOTOR_MAX_SPEED; // ??????
+    uint8_t acc = MOTOR_ACCEL;        // ????????
+
+    my_printf(&huart1, "\r\n=== Y-AXIS MOTOR ROTATION ===\r\n");
+    my_printf(&huart1, "Target angle: %d degrees\r\n", angle);
+    my_printf(&huart1, "Speed: %d RPM, Acceleration: %d\r\n", speed, acc);
+
+    // ??????
+    if (angle > 180)
+    {
+        my_printf(&huart1, "WARNING: Angle %d > 180, limiting to 180\r\n", angle);
+        angle = 180;
+    }
+    if (angle < -180)
+    {
+        my_printf(&huart1, "WARNING: Angle %d < -180, limiting to -180\r\n", angle);
+        angle = -180;
+    }
+
+    // ???????0
+    if (angle == 0)
+    {
+        my_printf(&huart1, "WARNING: Angle is 0, no rotation needed\r\n");
+        return;
+    }
+
+    // ????????
+    // Y???????CW???????CCW?
+    if (angle >= 0)
+    {
+        dir = 1;                         // CW?? (??)
+        pulses = (uint32_t)(angle * 12); // ?????45° = 45 * 150 = 6750
+        my_printf(&huart1, "Direction: CW (Up), Angle: +%d\r\n", angle);
+    }
+    else
+    {
+        dir = 0;                            // CCW?? (??)
+        pulses = (uint32_t)((-angle) * 12); // ?????-45° = 45 * 150 = 6750
+        my_printf(&huart1, "Direction: CCW (Down), Angle: %d\r\n", angle);
+    }
+
+    if (pulses == 0)
+    {
+        my_printf(&huart1, "ERROR: Calculated pulse value is 0!\r\n");
+        return;
+    }
+
+    my_printf(&huart1, "Calculated pulses: %lu\r\n", pulses);
+    my_printf(&huart1, "Sending command to Y-axis motor...\r\n");
+
+    // ??Y?????
+    Emm_V5_Pos_Control(&MOTOR_Y_UART, MOTOR_Y_ADDR, dir, speed, acc, pulses, false, MOTOR_SYNC_FLAG);
+
+    // ??UART??
+    if (MOTOR_Y_UART.gState == HAL_UART_STATE_READY)
+    {
+        my_printf(&huart1, "Y-axis UART state: READY\r\n");
+    }
+    else
+    {
+        my_printf(&huart1, "WARNING: Y-axis UART state: %d (not ready)\r\n", MOTOR_Y_UART.gState);
+    }
+
+    // ?????????
+    uint32_t rotation_time_ms = calculate_rotation_time(angle, speed);
+    my_printf(&huart1, "Calculated Y-axis rotation time: %lu ms\r\n", rotation_time_ms);
+    my_printf(&huart1, "Waiting for Y-axis rotation to complete...\r\n");
+
+    HAL_Delay(rotation_time_ms);
+    my_printf(&huart1, "Y-axis rotation completed!\r\n");
+    my_printf(&huart1, "=== Y-AXIS ROTATION END ===\r\n\r\n");
+}

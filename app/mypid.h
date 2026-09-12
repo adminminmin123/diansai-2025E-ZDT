@@ -1,29 +1,28 @@
-#ifndef  __MYPID_H__
-#define  __MYPID_H__
+#ifndef __MYPID_H__
+#define __MYPID_H__
 
 /* Standard Includes */
 #include "bsp_system.h"
 
+// typedef unsigned char uint8;       // ï¿½Þ·ï¿½ï¿½ï¿½  8 bits
+// typedef unsigned short int uint16; // ï¿½Þ·ï¿½ï¿½ï¿½ 16 bits
+//// typedef unsigned long int uint32;  // ï¿½Þ·ï¿½ï¿½ï¿½ 32 bits
+//// typedef unsigned long long uint64; // ï¿½Þ·ï¿½ï¿½ï¿½ 64 bits
 
-//typedef unsigned char uint8;       // ÎÞ·ûºÅ  8 bits
-//typedef unsigned short int uint16; // ÎÞ·ûºÅ 16 bits
-//// typedef unsigned long int uint32;  // ÎÞ·ûºÅ 32 bits
-//// typedef unsigned long long uint64; // ÎÞ·ûºÅ 64 bits
+// typedef char int8;       // ï¿½Ð·ï¿½ï¿½ï¿½  8 bits
+// typedef short int int16; // ï¿½Ð·ï¿½ï¿½ï¿½ 16 bits
+//// typedef long int int32;  // ï¿½Ð·ï¿½ï¿½ï¿½ 32 bits
+//// typedef long long int64; // ï¿½Ð·ï¿½ï¿½ï¿½ 64 bits
 
-//typedef char int8;       // ÓÐ·ûºÅ  8 bits
-//typedef short int int16; // ÓÐ·ûºÅ 16 bits
-//// typedef long int int32;  // ÓÐ·ûºÅ 32 bits
-//// typedef long long int64; // ÓÐ·ûºÅ 64 bits
+// typedef volatile uint8 vuint8;   // ï¿½×±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ·ï¿½ï¿½ï¿½  8 bits
+// typedef volatile uint16 vuint16; // ï¿½×±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ·ï¿½ï¿½ï¿½ 16 bits
+//// typedef volatile uint32 vuint32; // ï¿½×±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ·ï¿½ï¿½ï¿½ 32 bits
+//// typedef volatile uint64 vuint64; // ï¿½×±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ·ï¿½ï¿½ï¿½ 64 bits
 
-//typedef volatile uint8 vuint8;   // Ò×±äÐÔÐÞÊÎ ÎÞ·ûºÅ  8 bits
-//typedef volatile uint16 vuint16; // Ò×±äÐÔÐÞÊÎ ÎÞ·ûºÅ 16 bits
-//// typedef volatile uint32 vuint32; // Ò×±äÐÔÐÞÊÎ ÎÞ·ûºÅ 32 bits
-//// typedef volatile uint64 vuint64; // Ò×±äÐÔÐÞÊÎ ÎÞ·ûºÅ 64 bits
-
-//typedef volatile int8 vint8;   // Ò×±äÐÔÐÞÊÎ ÓÐ·ûºÅ  8 bits
-//typedef volatile int16 vint16; // Ò×±äÐÔÐÞÊÎ ÓÐ·ûºÅ 16 bits
-//// typedef volatile int32 vint32; // Ò×±äÐÔÐÞÊÎ ÓÐ·ûºÅ 32 bits
-//// typedef volatile int64 vint64; // Ò×±äÐÔÐÞÊÎ ÓÐ·ûºÅ 64 bits
+// typedef volatile int8 vint8;   // ï¿½×±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½ï¿½ï¿½  8 bits
+// typedef volatile int16 vint16; // ï¿½×±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½ï¿½ï¿½ 16 bits
+//// typedef volatile int32 vint32; // ï¿½×±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½ï¿½ï¿½ 32 bits
+//// typedef volatile int64 vint64; // ï¿½×±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½ï¿½ï¿½ 64 bits
 //// #define uint32_t uint16
 enum
 {
@@ -50,7 +49,7 @@ typedef struct pid_t
 
   float input_max_err;   // input max err;
   float output_deadband; // output deadband;
-  float input_deadband; // µ± |Îó²î| <= input_deadband Ê±£¬ÈÏÎªÎó²îÎª0
+  float input_deadband;  // ï¿½ï¿½ |ï¿½ï¿½ï¿½| <= input_deadband Ê±ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½Îª0
 
   uint32_t pid_mode;
   uint32_t max_out;
@@ -72,22 +71,21 @@ extern pid_t pid_motor_right;
 extern pid_t pid_left_location;
 extern pid_t pid_right_location;
 
-
 #if 0
 #define PID_PARAM_DEFAULT \
   {                       \
-    0,                    \
-        0,                \
-        0,                \
-        0,                \
-        0,                \
-        {0, 0, 0},        \
-        0,                \
-        0,                \
-        0,                \
-        0,                \
-        0,                \
-        0,                \
+      0,                  \
+      0,                  \
+      0,                  \
+      0,                  \
+      0,                  \
+      {0, 0, 0},          \
+      0,                  \
+      0,                  \
+      0,                  \
+      0,                  \
+      0,                  \
+      0,                  \
   }\
 
 typedef struct
@@ -138,27 +136,26 @@ void PID_struct_init(
     float ki,
     float kd);
 void PID_INIT(void);
-float pid_calc(pid_t *pid, float get, float set ,uint8_t smoth);
-float pid_angle_calc(pid_t *pid, float get, float set ,uint8_t smoth);
-float pid_yaw_calc(pid_t *pid, float get, float set ,uint8_t smoth);
-float pid_calc_i_separation(pid_t *pid, float get, float set ,uint8_t smoth,float i_separation_value);
-float pid_calc_d(pid_t *pid, float get, float set ,float actual,float last_actual,uint8_t smoth);
+float pid_calc(pid_t *pid, float get, float set, uint8_t smoth);
+float pid_angle_calc(pid_t *pid, float get, float set, uint8_t smoth);
+float pid_yaw_calc(pid_t *pid, float get, float set, uint8_t smoth);
+float pid_calc_i_separation(pid_t *pid, float get, float set, uint8_t smoth, float i_separation_value);
+float pid_calc_d(pid_t *pid, float get, float set, float actual, float last_actual, uint8_t smoth);
 void pid_clear(pid_t *pid);
-//float position_pid_calc(pid_t *pid, float fdb, float ref);
-//void ControlLoop(void);
+// float position_pid_calc(pid_t *pid, float fdb, float ref);
+// void ControlLoop(void);
 
 extern pid_t pid_x;
 extern pid_t pid_y;
-		
-extern pid_t pid_speed_left,pid_speed_right;
-extern pid_t pid_location_left,pid_location_right;
-		
-#define TOLERANCE_CM_X 1.0f // XÖáÉÏÔÊÐíµÄÎó²î·¶Î§ (cm)
-#define TOLERANCE_CM_Y 1.0f // YÖáÉÏÔÊÐíµÄÎó²î·¶Î§ (cm)
 
-// *** ÐèÒª¸ù¾ÝÄãµÄÊµ¼ÊÉãÏñÍ·ºÍ»úÐµ½á¹¹½øÐÐÐ£×¼ ***
-#define PIXELS_PER_CM_X 13.33f // ¼ÙÉè 1cm = 50 ÏñËØ
-#define PIXELS_PER_CM_Y 13.33f // ¼ÙÉè 1cm = 50 ÏñËØ
-	
+extern pid_t pid_speed_left, pid_speed_right;
+extern pid_t pid_location_left, pid_location_right;
+
+#define TOLERANCE_CM_X 1.0f // Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½î·¶Î§ (cm)
+#define TOLERANCE_CM_Y 1.0f // Yï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½î·¶Î§ (cm)
+
+// *** ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½Í»ï¿½Ðµï¿½á¹¹ï¿½ï¿½ï¿½ï¿½Ð£×¼ ***
+#define PIXELS_PER_CM_X 13.33f // ï¿½ï¿½ï¿½ï¿½ 1cm = 50 ï¿½ï¿½ï¿½ï¿½
+#define PIXELS_PER_CM_Y 13.33f // ï¿½ï¿½ï¿½ï¿½ 1cm = 50 ï¿½ï¿½ï¿½ï¿½
+
 #endif
-

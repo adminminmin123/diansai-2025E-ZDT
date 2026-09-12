@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    usart.c
-  * @brief   This file provides code for the configuration
-  *          of the USART instances.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    usart.c
+ * @brief   This file provides code for the configuration
+ *          of the USART instances.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
@@ -27,65 +27,53 @@ uint8_t motor_x_buf[64];
 uint8_t motor_y_buf[64];
 uint8_t pi_rx_buf[64];
 uint8_t user_rx_buf[64];
-uint8_t uart3_rx_buffer[32];//������
-
-//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-//{
-//    if (huart->Instance == USART3)
-//    {
-//        // ������յ�������
-//        HWT101_ProcessBuffer(&hwt101, uart3_rx_buffer, sizeof(uart3_rx_buffer));
-//        
-//        // ��������DMA����
-//        HAL_UART_Receive_DMA(&huart3, uart3_rx_buffer, sizeof(uart3_rx_buffer));
-//    }
-//	if(huart->Instance == USART2)
-//	{
-////    	my_printf(&huart1,"user:%s\r\n",motor_x_buf);
-//		rt_ringbuffer_put(&ringbuffer_x, motor_x_buf, Size);
-//		memset(motor_x_buf, 0, sizeof(motor_x_buf));
-//	}
-//	if(huart->Instance == UART4)
-//	{
-////		my_printf(&huart1,"uart:%s\r\n",motor_y_buf);
-//		rt_ringbuffer_put(&ringbuffer_y, motor_y_buf, Size);
-//		memset(motor_y_buf, 0, sizeof(motor_y_buf));
-//	}	
-//}
+uint8_t uart3_rx_buffer[32]; // UART3 receive buffer
+uint8_t car_rx_buf[64];      // 小车信号接收缓冲区
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-
   if (huart->Instance == USART2)
   {
-//    my_printf(&huart1,"user:%s\r\n",user_rx_buf);
     rt_ringbuffer_put(&ringbuffer_x, motor_x_buf, Size);
     memset(motor_x_buf, 0, sizeof(motor_x_buf));
+    // Restart DMA reception
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart2, motor_x_buf, sizeof(motor_x_buf));
   }
-  if(huart->Instance == UART4)
+  if (huart->Instance == UART4)
   {
-//		my_printf(&huart1,"uart:%s\r\n",motor_y_buf);
-	rt_ringbuffer_put(&ringbuffer_y, motor_y_buf, Size);
-	memset(motor_y_buf, 0, sizeof(motor_y_buf));
-  }	
-  if (huart->Instance == USART6)
+    rt_ringbuffer_put(&ringbuffer_y, motor_y_buf, Size);
+    memset(motor_y_buf, 0, sizeof(motor_y_buf));
+    // Restart DMA reception
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart4, motor_y_buf, sizeof(motor_y_buf));
+  }
+  if (huart->Instance == USART3)
   {
-//    my_printf(&huart6,"tx:%s\r\n",pi_rx_buf);
     rt_ringbuffer_put(&ringbuffer_pi, pi_rx_buf, Size);
     memset(pi_rx_buf, 0, sizeof(pi_rx_buf));
+    // Restart DMA reception
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart3, pi_rx_buf, sizeof(pi_rx_buf));
+  }
+  if (huart->Instance == USART6)
+  {
+    // 处理小车转弯信号
+    car_rx_buf[Size] = '\0'; // 确保字符串结束
+    process_car_turn_signal((char*)car_rx_buf, Size);
+    memset(car_rx_buf, 0, sizeof(car_rx_buf));
+    // Restart DMA reception
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart6, car_rx_buf, sizeof(car_rx_buf));
   }
 }
 
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart4;
-UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_uart4_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart3_rx;
 DMA_HandleTypeDef hdma_usart6_rx;
 
 /* UART4 init function */
@@ -112,37 +100,9 @@ void MX_UART4_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN UART4_Init 2 */
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart4, motor_y_buf, sizeof(motor_y_buf));
-    __HAL_DMA_DISABLE_IT(&hdma_uart4_rx ,DMA_IT_HT);
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart4, motor_y_buf, sizeof(motor_y_buf));
+  __HAL_DMA_DISABLE_IT(&hdma_uart4_rx, DMA_IT_HT);
   /* USER CODE END UART4_Init 2 */
-
-}
-/* UART5 init function */
-void MX_UART5_Init(void)
-{
-
-  /* USER CODE BEGIN UART5_Init 0 */
-
-  /* USER CODE END UART5_Init 0 */
-
-  /* USER CODE BEGIN UART5_Init 1 */
-
-  /* USER CODE END UART5_Init 1 */
-  huart5.Instance = UART5;
-  huart5.Init.BaudRate = 115200;
-  huart5.Init.WordLength = UART_WORDLENGTH_8B;
-  huart5.Init.StopBits = UART_STOPBITS_1;
-  huart5.Init.Parity = UART_PARITY_NONE;
-  huart5.Init.Mode = UART_MODE_TX_RX;
-  huart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart5.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart5) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN UART5_Init 2 */
-
-  /* USER CODE END UART5_Init 2 */
 
 }
 /* USART1 init function */
@@ -199,8 +159,8 @@ void MX_USART2_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART2_Init 2 */
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart2, motor_x_buf, sizeof(motor_x_buf));
-    __HAL_DMA_DISABLE_IT(&hdma_usart2_rx ,DMA_IT_HT);
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, motor_x_buf, sizeof(motor_x_buf));
+  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
   /* USER CODE END USART2_Init 2 */
 
 }
@@ -246,7 +206,7 @@ void MX_USART6_UART_Init(void)
 
   /* USER CODE END USART6_Init 1 */
   huart6.Instance = USART6;
-  huart6.Init.BaudRate = 115200;
+  huart6.Init.BaudRate = 9600;  // 修改为9600以匹配小车
   huart6.Init.WordLength = UART_WORDLENGTH_8B;
   huart6.Init.StopBits = UART_STOPBITS_1;
   huart6.Init.Parity = UART_PARITY_NONE;
@@ -258,8 +218,9 @@ void MX_USART6_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART6_Init 2 */
-  HAL_UARTEx_ReceiveToIdle_DMA(&huart6, pi_rx_buf, sizeof(pi_rx_buf));
-  __HAL_DMA_DISABLE_IT(&hdma_usart6_rx ,DMA_IT_HT);
+  // 启动小车信号接收
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart6, car_rx_buf, sizeof(car_rx_buf));
+  __HAL_DMA_DISABLE_IT(&hdma_usart6_rx, DMA_IT_HT);
   /* USER CODE END USART6_Init 2 */
 
 }
@@ -276,17 +237,17 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     /* UART4 clock enable */
     __HAL_RCC_UART4_CLK_ENABLE();
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
     /**UART4 GPIO Configuration
-    PA0-WKUP     ------> UART4_TX
-    PA1     ------> UART4_RX
+    PC10     ------> UART4_TX
+    PC11     ------> UART4_RX
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
     /* UART4 DMA Init */
     /* UART4_RX Init */
@@ -313,38 +274,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
   /* USER CODE BEGIN UART4_MspInit 1 */
 
   /* USER CODE END UART4_MspInit 1 */
-  }
-  else if(uartHandle->Instance==UART5)
-  {
-  /* USER CODE BEGIN UART5_MspInit 0 */
-
-  /* USER CODE END UART5_MspInit 0 */
-    /* UART5 clock enable */
-    __HAL_RCC_UART5_CLK_ENABLE();
-
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_GPIOD_CLK_ENABLE();
-    /**UART5 GPIO Configuration
-    PC12     ------> UART5_TX
-    PD2     ------> UART5_RX
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_12;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF8_UART5;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = GPIO_PIN_2;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF8_UART5;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN UART5_MspInit 1 */
-
-  /* USER CODE END UART5_MspInit 1 */
   }
   else if(uartHandle->Instance==USART1)
   {
@@ -381,17 +310,17 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     /* USART2 clock enable */
     __HAL_RCC_USART2_CLK_ENABLE();
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
     /**USART2 GPIO Configuration
-    PA2     ------> USART2_TX
-    PA3     ------> USART2_RX
+    PD5     ------> USART2_TX
+    PD6     ------> USART2_RX
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
+    GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     /* USART2 DMA Init */
     /* USART2_RX Init */
@@ -438,6 +367,25 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+    /* USART3 DMA Init */
+    /* USART3_RX Init */
+    hdma_usart3_rx.Instance = DMA1_Stream1;
+    hdma_usart3_rx.Init.Channel = DMA_CHANNEL_4;
+    hdma_usart3_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart3_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart3_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart3_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart3_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart3_rx.Init.Mode = DMA_NORMAL;
+    hdma_usart3_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_usart3_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_usart3_rx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart3_rx);
 
     /* USART3 interrupt Init */
     HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
@@ -506,10 +454,10 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     __HAL_RCC_UART4_CLK_DISABLE();
 
     /**UART4 GPIO Configuration
-    PA0-WKUP     ------> UART4_TX
-    PA1     ------> UART4_RX
+    PC10     ------> UART4_TX
+    PC11     ------> UART4_RX
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_0|GPIO_PIN_1);
+    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_10|GPIO_PIN_11);
 
     /* UART4 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmarx);
@@ -519,26 +467,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
   /* USER CODE BEGIN UART4_MspDeInit 1 */
 
   /* USER CODE END UART4_MspDeInit 1 */
-  }
-  else if(uartHandle->Instance==UART5)
-  {
-  /* USER CODE BEGIN UART5_MspDeInit 0 */
-
-  /* USER CODE END UART5_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_UART5_CLK_DISABLE();
-
-    /**UART5 GPIO Configuration
-    PC12     ------> UART5_TX
-    PD2     ------> UART5_RX
-    */
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_12);
-
-    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_2);
-
-  /* USER CODE BEGIN UART5_MspDeInit 1 */
-
-  /* USER CODE END UART5_MspDeInit 1 */
   }
   else if(uartHandle->Instance==USART1)
   {
@@ -569,10 +497,10 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     __HAL_RCC_USART2_CLK_DISABLE();
 
     /**USART2 GPIO Configuration
-    PA2     ------> USART2_TX
-    PA3     ------> USART2_RX
+    PD5     ------> USART2_TX
+    PD6     ------> USART2_RX
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_2|GPIO_PIN_3);
+    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_5|GPIO_PIN_6);
 
     /* USART2 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmarx);
@@ -596,6 +524,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     PD9     ------> USART3_RX
     */
     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_8|GPIO_PIN_9);
+
+    /* USART3 DMA DeInit */
+    HAL_DMA_DeInit(uartHandle->hdmarx);
 
     /* USART3 interrupt Deinit */
     HAL_NVIC_DisableIRQ(USART3_IRQn);
@@ -629,5 +560,42 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+/**
+ * @brief 处理小车转弯信号（单向接收，不发送确认）
+ * @param data 接收到的数据
+ * @param size 数据长度
+ */
+void process_car_turn_signal(char* data, uint16_t size)
+{
+    // 检查是否接收到转弯信号
+    if (strstr(data, "TURN_START") != NULL)
+    {
+        my_printf(&huart1, "\r\n=== CAR TURN SIGNAL RECEIVED ===\r\n");
+        my_printf(&huart1, "Received: %s\r\n", data);
+
+        // 获取当前系统模式
+        SystemMode_t current_mode = Laser_GetSystemMode();
+        my_printf(&huart1, "Current system mode: %d\r\n", current_mode);
+
+        // 只在模式3下响应转弯信号
+        if (current_mode == SYSTEM_MODE_3)
+        {
+            my_printf(&huart1, "Mode 3 detected - Executing X-axis 90° right turn\r\n");
+
+            // X轴向右转90度
+            Step_Motor_Rotate_X_Angle(90);
+
+            my_printf(&huart1, "X-axis 90° right rotation completed\r\n");
+        }
+        else
+        {
+            my_printf(&huart1, "Not in Mode 3 - Turn signal ignored\r\n");
+            my_printf(&huart1, "Current mode: %d (need Mode 3 for turn response)\r\n", current_mode);
+        }
+
+        my_printf(&huart1, "=== CAR TURN SIGNAL PROCESSING COMPLETE ===\r\n\r\n");
+    }
+}
 
 /* USER CODE END 1 */

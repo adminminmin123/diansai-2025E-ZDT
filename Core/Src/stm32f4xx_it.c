@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    stm32f4xx_it.c
-  * @brief   Interrupt Service Routines.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    stm32f4xx_it.c
+ * @brief   Interrupt Service Routines.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -56,8 +56,10 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern TIM_HandleTypeDef htim2;
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_usart2_rx;
+extern DMA_HandleTypeDef hdma_usart3_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart1;
@@ -80,7 +82,7 @@ void NMI_Handler(void)
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-   while (1)
+  while (1)
   {
   }
   /* USER CODE END NonMaskableInt_IRQn 1 */
@@ -207,6 +209,20 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles DMA1 stream1 global interrupt.
+  */
+void DMA1_Stream1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart3_rx);
+  /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream1_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 stream2 global interrupt.
   */
 void DMA1_Stream2_IRQHandler(void)
@@ -235,6 +251,20 @@ void DMA1_Stream5_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM2 global interrupt.
+  */
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+
+  /* USER CODE END TIM2_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim2);
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+
+  /* USER CODE END TIM2_IRQn 1 */
+}
+
+/**
   * @brief This function handles USART1 global interrupt.
   */
 void USART1_IRQHandler(void)
@@ -259,7 +289,7 @@ void USART2_IRQHandler(void)
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
   HAL_UARTEx_ReceiveToIdle_DMA(&huart2, motor_x_buf, sizeof(motor_x_buf));
-  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx ,DMA_IT_HT);
+  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
   /* USER CODE END USART2_IRQn 1 */
 }
 
@@ -273,7 +303,8 @@ void USART3_IRQHandler(void)
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */
-
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart3, pi_rx_buf, sizeof(pi_rx_buf));
+  __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_HT);
   /* USER CODE END USART3_IRQn 1 */
 }
 
@@ -287,8 +318,8 @@ void UART4_IRQHandler(void)
   /* USER CODE END UART4_IRQn 0 */
   HAL_UART_IRQHandler(&huart4);
   /* USER CODE BEGIN UART4_IRQn 1 */
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart4, motor_y_buf, sizeof(motor_y_buf));
-    __HAL_DMA_DISABLE_IT(&hdma_uart4_rx ,DMA_IT_HT);
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart4, motor_y_buf, sizeof(motor_y_buf));
+  __HAL_DMA_DISABLE_IT(&hdma_uart4_rx, DMA_IT_HT);
   /* USER CODE END UART4_IRQn 1 */
 }
 
@@ -316,8 +347,8 @@ void USART6_IRQHandler(void)
   /* USER CODE END USART6_IRQn 0 */
   HAL_UART_IRQHandler(&huart6);
   /* USER CODE BEGIN USART6_IRQn 1 */
-  HAL_UARTEx_ReceiveToIdle_DMA(&huart6, pi_rx_buf, sizeof(pi_rx_buf));
-  __HAL_DMA_DISABLE_IT(&hdma_usart6_rx ,DMA_IT_HT);
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart6, car_rx_buf, sizeof(car_rx_buf));
+  __HAL_DMA_DISABLE_IT(&hdma_usart6_rx, DMA_IT_HT);
   /* USER CODE END USART6_IRQn 1 */
 }
 

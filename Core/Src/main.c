@@ -1,25 +1,24 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
-#include "i2c.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -47,7 +46,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+// External declaration of UART receive buffers
+extern uint8_t motor_x_buf[64];
+extern uint8_t motor_y_buf[64];
+extern uint8_t pi_rx_buf[64];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,9 +64,9 @@ void SystemClock_Config(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -91,36 +93,32 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_I2C1_Init();
-  MX_I2C2_Init();
-  MX_TIM1_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
-  MX_UART5_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_USART6_UART_Init();
   MX_UART4_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   schedule_init();
-//  encoder_init();
-//	motor_init();
-//  OLED_Init();
-	PID_INIT();
+  //  OLED_Init();
+  PID_INIT();
+  Laser_Init(); // 初始化激光控制系统
 
-  rt_ringbuffer_init(&ringbuffer_y, ringbuffer_pool_y,  sizeof(ringbuffer_pool_y));
-  rt_ringbuffer_init(&ringbuffer_x, ringbuffer_pool_x,  sizeof(ringbuffer_pool_x));
-  rt_ringbuffer_init(&ringbuffer_pi,ringbuffer_pool_pi, sizeof(ringbuffer_pool_pi));
-	
+  rt_ringbuffer_init(&ringbuffer_y, ringbuffer_pool_y, sizeof(ringbuffer_pool_y));
+  rt_ringbuffer_init(&ringbuffer_x, ringbuffer_pool_x, sizeof(ringbuffer_pool_x));
+  rt_ringbuffer_init(&ringbuffer_pi, ringbuffer_pool_pi, sizeof(ringbuffer_pool_pi));
+
+  // Start UART DMA reception - using dedicated receive buffers
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, motor_x_buf, sizeof(motor_x_buf));
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart4, motor_y_buf, sizeof(motor_y_buf));
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart3, pi_rx_buf, sizeof(pi_rx_buf));
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart6, car_rx_buf, sizeof(car_rx_buf));
+
   Step_Motor_Init();
-  Emm_V5_Reset_CurPos_To_Zero(&huart4, 0x01);
-  Emm_V5_Reset_CurPos_To_Zero(&huart2, 0x01);
 
-	save_initial_position();
-//Step_Motor_Set_Speed_my(1,1);
-
-//	Step_Motor_Set_Speed_my(3,3);
+//  // 延长延时确保电机完全初始化
+//  HAL_Delay(200); // 增加到1秒确保电机准备就绪
 
   /* USER CODE END 2 */
 
@@ -131,30 +129,28 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  schedule_run();
-
-	  
+    schedule_run();
   }
   /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
-  */
+   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -170,9 +166,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -189,9 +184,9 @@ void SystemClock_Config(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -202,15 +197,14 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

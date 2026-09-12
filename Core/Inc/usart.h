@@ -34,8 +34,6 @@ extern "C" {
 
 extern UART_HandleTypeDef huart4;
 
-extern UART_HandleTypeDef huart5;
-
 extern UART_HandleTypeDef huart1;
 
 extern UART_HandleTypeDef huart2;
@@ -49,14 +47,13 @@ extern UART_HandleTypeDef huart6;
 /* USER CODE END Private defines */
 
 void MX_UART4_Init(void);
-void MX_UART5_Init(void);
 void MX_USART1_UART_Init(void);
 void MX_USART2_UART_Init(void);
 void MX_USART3_UART_Init(void);
 void MX_USART6_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void process_car_turn_signal(char* data, uint16_t size);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
