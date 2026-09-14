@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "mspm0g3507",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "mspm0g3507",
+                "resourceId": "/mspm0g3507"
+            }
+        }
+    ]
+}

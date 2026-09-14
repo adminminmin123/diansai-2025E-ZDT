@@ -22,6 +22,12 @@ JLinkSettings.ini
 # STM32CubeMX 备份
 *.ioc.bak
 
+# CCS Theia (MSPM0 小车板) 编译产物
+car_mspm0g3507/Debug/
+*.out
+*.hex.out
+*.ccxml.bak
+
 # IDE / 系统文件
 *.bak
 *.orig
