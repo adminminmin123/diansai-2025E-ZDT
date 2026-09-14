@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bsp_system.h"
+#include "app_freertos.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,7 +101,7 @@ int main(void)
   MX_UART4_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  schedule_init();
+  // schedule_init();   /* 协作调度器退役, 4 个周期槽由 FreeRTOS 任务接管 */
   //  OLED_Init();
   PID_INIT();
   Laser_Init(); // 初始化激光控制系统
@@ -120,6 +121,9 @@ int main(void)
 //  // 延长延时确保电机完全初始化
 //  HAL_Delay(200); // 增加到1秒确保电机准备就绪
 
+  /* 创建 FreeRTOS 任务(4 个周期槽 → 4 个任务) */
+  app_freertos_init();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -129,7 +133,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    schedule_run();
+    vTaskStartScheduler();   /* 启动 FreeRTOS, 正常情况不返回 */
+    Error_Handler();         /* 调度器异常返回(如堆内存不足)时停留于此 */
   }
   /* USER CODE END 3 */
 }
